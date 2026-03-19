@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftDrop Nigeria — Analytics Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f5f3ee;--bg2:#eeeae2;--card:#ffffff;--card2:#faf8f4;
+  --border:#e0dbd0;--border2:#ccc8bc;
+  --text:#1c1a14;--text2:#5c5848;--text3:#9c9480;
+  --orange:#e8621a;--orange-l:#fdf0e8;--orange-d:#c04d10;
+  --green:#1a7a4a;--green-l:#e8f5ee;
+  --blue:#1a4a8a;--blue-l:#e8f0fa;
+  --red:#c02020;--red-l:#fde8e8;
+  --amber:#c07010;--amber-l:#fdf3e0;
+  --purple:#6030a0;--purple-l:#f0e8fa;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+header{background:var(--text);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo-name{font-family:'Fraunces',serif;font-size:18px;color:white;font-weight:600;letter-spacing:0.01em}
+.logo-tag{font-size:11px;color:rgba(255,255,255,0.45);font-weight:300;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px}
+.hbadge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-size:11px;padding:5px 14px;border-radius:20px}
+
+.main{padding:28px 32px;max-width:1400px;margin:0 auto}
+.sec-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.kpi.orange::before{background:var(--orange)}
+.kpi.green::before{background:var(--green)}
+.kpi.blue::before{background:var(--blue)}
+.kpi.red::before{background:var(--red)}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;font-weight:500}
+.kpi-val{font-family:'Fraunces',serif;font-size:32px;color:var(--text);line-height:1;margin-bottom:6px}
+.kpi-sub{font-size:12px;color:var(--text2)}
+.kpi-badge{display:inline-flex;font-size:11px;padding:3px 9px;border-radius:6px;margin-top:8px;font-weight:500}
+.bg{background:var(--green-l);color:var(--green)}
+.br{background:var(--red-l);color:var(--red)}
+.ba{background:var(--amber-l);color:var(--amber)}
+.bb{background:var(--blue-l);color:var(--blue)}
+
+.row2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:28px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px}
+.row-half{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px}
+.card-title{font-family:'Fraunces',serif;font-size:15px;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--text3);margin-bottom:18px;line-height:1.5;font-weight:300}
+
+.problem-banner{border-radius:12px;padding:12px 16px;margin-bottom:8px;font-size:13px;line-height:1.65;display:flex;gap:10px;align-items:flex-start}
+.pb-orange{background:var(--orange-l);border-left:3px solid var(--orange);color:var(--orange-d)}
+.pb-red{background:var(--red-l);border-left:3px solid var(--red);color:var(--red)}
+.pb-blue{background:var(--blue-l);border-left:3px solid var(--blue);color:var(--blue)}
+.pb-green{background:var(--green-l);border-left:3px solid var(--green);color:var(--green)}
+.pb-amber{background:var(--amber-l);border-left:3px solid var(--amber);color:var(--amber)}
+.pb-num{font-weight:600;flex-shrink:0;font-size:14px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{color:var(--text3);font-weight:500;padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border)}
+.tbl td{padding:10px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.tbl tr:last-child td{border:none}
+.seg-pill{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.pill-corp{background:var(--purple-l);color:var(--purple)}
+.pill-eco{background:var(--blue-l);color:var(--blue)}
+.pill-smb{background:var(--green-l);color:var(--green)}
+.pill-free{background:var(--amber-l);color:var(--amber)}
+.pill-ind{background:var(--bg2);color:var(--text3)}
+.pill-ch-ref{background:var(--green-l);color:var(--green)}
+.pill-ch-wom{background:var(--blue-l);color:var(--blue)}
+.pill-ch-app{background:var(--purple-l);color:var(--purple)}
+.pill-ch-ggl{background:var(--amber-l);color:var(--amber)}
+.pill-ch-bad{background:var(--red-l);color:var(--red)}
+
+.bar-inline{height:5px;border-radius:3px;display:inline-block;vertical-align:middle;margin-left:6px}
+
+.rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+.rec-num{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.rec-title{font-family:'Fraunces',serif;font-size:14px;color:var(--text);margin-bottom:6px;line-height:1.4}
+.rec-body{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.rec-action{font-size:11.5px;color:var(--orange);font-weight:500;border-top:1px solid var(--border);padding-top:10px}
+
+footer{border-top:1px solid var(--border);padding:20px 32px;display:flex;justify-content:space-between;align-items:center}
+.ft{font-size:12px;color:var(--text3)}
+
+@media(max-width:900px){.kpi-grid,.row2,.row3,.row-half,.rec-grid{grid-template-columns:1fr}.main{padding:14px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+    </div>
+    <div>
+      <div class="logo-name">SwiftDrop Nigeria</div>
+      <div class="logo-tag">Product Analytics Dashboard — 2023/2024</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="hbadge">Oct 2023 – Sep 2024</div>
+    <div class="hbadge">25,000 Customers</div>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- KPIs -->
+<div class="sec-title">Key metrics</div>
+<div class="kpi-grid">
+  <div class="kpi orange">
+    <div class="kpi-label">Total Customers</div>
+    <div class="kpi-val">25,000</div>
+    <div class="kpi-sub">Across 5 customer segments</div>
+    <div class="kpi-badge bb">Oct 2023 – Sep 2024</div>
+  </div>
+  <div class="kpi green">
+    <div class="kpi-label">Total Revenue</div>
+    <div class="kpi-val">₦828.8M</div>
+    <div class="kpi-sub">180,299 delivered orders</div>
+    <div class="kpi-badge bg">Avg ₦4,597 per order</div>
+  </div>
+  <div class="kpi blue">
+    <div class="kpi-label">Activation Rate</div>
+    <div class="kpi-val">57.2%</div>
+    <div class="kpi-sub">14,312 customers activated</div>
+    <div class="kpi-badge ba">Benchmark: 65–75%</div>
+  </div>
+  <div class="kpi red">
+    <div class="kpi-label">Churn Rate</div>
+    <div class="kpi-val">85.3%</div>
+    <div class="kpi-sub">21,322 churned customers</div>
+    <div class="kpi-badge br">Critical — action needed</div>
+  </div>
+</div>
+
+<!-- PROBLEM 1: REVENUE -->
+<div class="sec-title">Problem 1 — Why is revenue declining despite growing users?</div>
+<div class="row2">
+  <div class="card">
+    <div class="card-title">Monthly Revenue vs User Growth</div>
+    <div class="card-sub">Revenue grew strongly until June 2024, then declined sharply — despite the user base continuing to grow. The cause is buried in the discount data.</div>
+    <div style="position:relative;height:260px"><canvas id="revChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">The Root Cause — Discount Removal</div>
+    <div class="card-sub">Three phases of discount policy reveal exactly what happened</div>
+    <br>
+    <div class="problem-banner pb-green">
+      <span class="pb-num">Q4 2023</span>
+      <span>20% launch discount applied across all orders. Revenue per user: ₦18k–₦22k/month. Users engaged but subsidised.</span>
+    </div>
+    <div class="problem-banner pb-orange">
+      <span class="pb-num">Q1 2024</span>
+      <span>Discounts maintained at 20%. Revenue growing. User growth accelerating. Business looks healthy on the surface.</span>
+    </div>
+    <div class="problem-banner pb-red">
+      <span class="pb-num">Apr–Jun 2024</span>
+      <span>Discounts completely removed (0%). Revenue per user jumped to ₦26k–₦28k — but user engagement dropped sharply and churn accelerated. Many users were loyal to the discount, not the product.</span>
+    </div>
+    <div class="problem-banner pb-amber">
+      <span class="pb-num">Jul 2024+</span>
+      <span>10% partial discount restored. Revenue stabilising at ₦24k–₦26k per user but total revenue still declining as churned users are not being replaced fast enough.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM 2: CHURN -->
+<div class="sec-title">Problem 2 — Which customers are most likely to churn next month?</div>
+<div class="row-half">
+  <div class="card">
+    <div class="card-title">Churn Rate by Acquisition Channel</div>
+    <div class="card-sub">Channel quality varies dramatically. TikTok Ads users churn at 89.3% — the worst in the business. Referral users churn at only 79.2%.</div>
+    <table class="tbl">
+      <thead><tr><th>Channel</th><th>Users</th><th>Churn Rate</th><th>Avg Risk Score</th><th>LTV</th></tr></thead>
+      <tbody id="churnTable"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Churn Rate by Customer Segment</div>
+    <div class="card-sub">Individual Senders churn at 88.1% — they are one-time users. Corporate clients have the lowest churn at 82.7% and highest LTV.</div>
+    <table class="tbl">
+      <thead><tr><th>Segment</th><th>Users</th><th>Churn %</th><th>Avg Orders</th><th>Avg LTV</th></tr></thead>
+      <tbody id="segTable"></tbody>
+    </table>
+    <br>
+    <div class="problem-banner pb-red">
+      <span class="pb-num">!</span>
+      <span>19,451 customers (77.8%) have a churn risk score above 70. This is the at-risk population that needs immediate retention intervention.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM 3: FUNNEL -->
+<div class="sec-title">Problem 3 — Where is the product losing customers in the journey?</div>
+<div class="row2">
+  <div class="card">
+    <div class="card-title">Delivery Booking Funnel</div>
+    <div class="card-sub">Of 25,000 customers who opened the app, only 1,148 (4.6%) placed an order. The payment step is catastrophically broken.</div>
+    <div style="position:relative;height:280px"><canvas id="funnelChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Pre vs Post February 2024</div>
+    <div class="card-sub">A payment UX change introduced in February 2024 destroyed conversion at the payment step — dropping from 35.3% to 22.7%</div>
+    <br>
+    <div style="position:relative;height:220px"><canvas id="funnelCompare"></canvas></div>
+    <br>
+    <div class="problem-banner pb-red">
+      <span class="pb-num">Critical</span>
+      <span>End-to-end conversion collapsed from 8.2% to 2.8% after February 2024 — a 66% deterioration. This is the single biggest fixable problem in the entire product.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM 4: CHANNELS -->
+<div class="sec-title">Problem 4 — Which marketing channel brings the best customers?</div>
+<div class="row-half">
+  <div class="card">
+    <div class="card-title">Channel LTV Comparison</div>
+    <div class="card-sub">Referral users are worth 2x more than TikTok Ads users over their lifetime — yet TikTok Ads likely costs more to acquire</div>
+    <div style="position:relative;height:240px"><canvas id="channelChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Channel Quality Scorecard</div>
+    <div class="card-sub">Every channel ranked by the metrics that matter — LTV, orders per user, and churn rate</div>
+    <table class="tbl">
+      <thead><tr><th>Channel</th><th>Avg LTV</th><th>Avg Orders</th><th>Churn %</th><th>Quality</th></tr></thead>
+      <tbody id="channelTable"></tbody>
+    </table>
+    <br>
+    <div class="problem-banner pb-green">
+      <span class="pb-num">Key insight</span>
+      <span>Referral (₦47,257 LTV) and Word of Mouth (₦46,317 LTV) deliver 2x the lifetime value of paid social channels. Every ₦1 spent on referral incentives likely returns ₦4–₦6 in LTV.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM 5: REPEAT USAGE -->
+<div class="sec-title">Problem 5 — How do we increase repeat orders?</div>
+<div class="row3">
+  <div class="card">
+    <div class="card-title">Revenue by Order Frequency</div>
+    <div class="card-sub">Customers who place 13+ orders generate 36x more revenue than one-time customers</div>
+    <div style="position:relative;height:220px"><canvas id="repeatChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Segment Repeat Rate</div>
+    <div class="card-sub">Corporate clients average 18 orders. Individual Senders average only 1.5. These two segments need completely different strategies.</div>
+    <table class="tbl">
+      <thead><tr><th>Segment</th><th>Avg Orders</th><th>Avg LTV</th></tr></thead>
+      <tbody id="repeatTable"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Delivery Type Revenue</div>
+    <div class="card-sub">International deliveries have the highest average value (₦20,085) but lowest repeat rate. Next-Day is the best volume driver.</div>
+    <div style="position:relative;height:220px"><canvas id="deliveryChart"></canvas></div>
+  </div>
+</div>
+
+<!-- RECOMMENDATIONS -->
+<div class="sec-title">Key findings and recommended actions</div>
+<div class="rec-grid">
+  <div class="rec-card">
+    <div class="rec-num">Finding 01</div>
+    <div class="rec-title">Discount removal caused churn spike — not user dissatisfaction</div>
+    <div class="rec-body">Revenue per active user jumped from ₦22k to ₦28k when discounts were removed in April 2024 — proving core users are willing to pay full price. But marginal users who came for the discount churned immediately. The 10% partial discount restored in July is the right level.</div>
+    <div class="rec-action">Maintain 10% discount for new users only in their first 3 months. Remove it gradually rather than abruptly. Test a loyalty discount for 12-month customers.</div>
+  </div>
+  <div class="rec-card">
+    <div class="rec-num">Finding 02</div>
+    <div class="rec-title">Payment step collapse since February 2024 is costing millions monthly</div>
+    <div class="rec-body">End-to-end funnel conversion dropped from 8.2% to 2.8% after the February 2024 payment UX change. On 18,705 post-Feb users, that difference alone means approximately 1,000 fewer completed orders per cohort — at an average of ₦4,597 each = ₦4.6M lost per cohort.</div>
+    <div class="rec-action">Immediately A/B test reverting the payment flow to the pre-February version. If confirmed, ship the revert within 7 days and recoup lost conversion.</div>
+  </div>
+  <div class="rec-card">
+    <div class="rec-num">Finding 03</div>
+    <div class="rec-title">TikTok and Facebook Ads bring cheap users who cost more than they earn</div>
+    <div class="rec-body">TikTok Ads users have an average LTV of ₦22,892 and a 89.3% churn rate. Referral users have an average LTV of ₦47,257 and a 79.2% churn rate. If the cost to acquire a TikTok user is similar to or higher than a referred user, the entire TikTok budget is destroying value.</div>
+    <div class="rec-action">Pause TikTok Ads immediately. Redirect budget to Referral programme — offer existing users ₦2,000 credit per referred customer who places 3 orders.</div>
+  </div>
+  <div class="rec-card">
+    <div class="rec-num">Finding 04</div>
+    <div class="rec-title">19,451 high-risk customers need intervention this month</div>
+    <div class="rec-body">77.8% of the customer base has a churn risk score above 70. Within this group, E-commerce Sellers and Corporate clients are the highest priority — they have the highest LTV and their loss would have the most material revenue impact.</div>
+    <div class="rec-action">Launch a tiered win-back campaign. Tier 1 (Corporate): dedicated account manager call. Tier 2 (E-commerce): 15% discount on next 5 orders. Tier 3 (others): push notification with ₦500 delivery credit.</div>
+  </div>
+  <div class="rec-card">
+    <div class="rec-num">Finding 05</div>
+    <div class="rec-title">E-commerce Sellers are the highest repeat-order opportunity</div>
+    <div class="rec-body">E-commerce Sellers average 12.8 orders and ₦60,715 LTV — 17x more than Individual Senders. They are also 22% of the customer base. A dedicated E-commerce growth programme could double revenue without acquiring a single new customer.</div>
+    <div class="rec-action">Create an E-commerce Seller onboarding programme — dedicated support, bulk pricing, API integration for high-volume sellers, and a loyalty tier at 50+ orders per month.</div>
+  </div>
+  <div class="rec-card">
+    <div class="rec-num">Finding 06</div>
+    <div class="rec-title">Same-Day delivery has the highest drop-off but also highest revenue per order</div>
+    <div class="rec-body">Same-Day delivery generates ₦4,672 average per order — second only to Interstate. But it has the lowest repeat rate (3.4 orders per user) and an 88% delivery success rate — the lowest of all delivery types. Failed Same-Day deliveries destroy customer trust.</div>
+    <div class="rec-action">Reduce Same-Day delivery zone to areas where 95%+ on-time delivery is achievable. Overcommitting and failing is worse than not offering the service.</div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  <div class="ft">SwiftDrop Nigeria — Product Analytics Dashboard — 2023/2024</div>
+  <div class="ft">25,000 customers | 196,191 orders | ₦828.8M revenue | Built with Python and Chart.js</div>
+</footer>
+
+<script>
+const months = ['Oct 23','Nov 23','Dec 23','Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24'];
+const revenue = [20.7,44.6,57.6,65.7,62.4,71.7,86.8,96.7,94.3,89.1,95.2,44.0];
+const activeUsers = [1131,2205,2693,2897,2964,3227,3218,3421,3461,3598,3661,2177];
+const avgDiscount = [20,20,20,20,20,20,0,0,0,10,10,10];
+
+const orange='#e8621a',green='#1a7a4a',blue='#1a4a8a',red='#c02020',amber='#c07010',purple='#6030a0';
+const def={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+
+// Revenue chart
+new Chart(document.getElementById('revChart'),{
+  type:'bar',
+  data:{labels:months,datasets:[
+    {label:'Revenue ₦M',data:revenue,backgroundColor:revenue.map((v,i)=>i>=3&&i<=5?'rgba(232,98,26,0.55)':i>=6&&i<=8?'rgba(192,32,32,0.55)':'rgba(26,74,138,0.45)'),borderColor:revenue.map((v,i)=>i>=3&&i<=5?orange:i>=6&&i<=8?red:blue),borderWidth:1.5,borderRadius:5,yAxisID:'y'},
+    {type:'line',label:'Active Users',data:activeUsers,borderColor:green,backgroundColor:'transparent',pointBackgroundColor:green,pointRadius:3,borderWidth:2,yAxisID:'y2',tension:0.4}
+  ]},
+  options:{...def,plugins:{legend:{display:true,labels:{color:'#5c5848',font:{size:11},boxWidth:12,padding:12}}},scales:{
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#9c9480',font:{size:11},callback:v=>'₦'+v+'M'},border:{display:false}},
+    y2:{position:'right',grid:{display:false},ticks:{color:green,font:{size:11}},border:{display:false}},
+    x:{grid:{display:false},ticks:{color:'#9c9480',font:{size:11}},border:{display:false}}
+  }}
+});
+
+// Funnel chart
+const funnelSteps = ['App Open','Search Location','Get Quote','Add Details','Payment Initiated','Payment Completed','Order Placed'];
+const funnelVals = [25000,23035,19096,14160,6851,2542,1148];
+new Chart(document.getElementById('funnelChart'),{
+  type:'bar',
+  data:{labels:funnelSteps,datasets:[{
+    data:funnelVals,
+    backgroundColor:funnelSteps.map((s,i)=>i>=4?'rgba(192,32,32,0.6)':'rgba(232,98,26,0.5)'),
+    borderColor:funnelSteps.map((s,i)=>i>=4?red:orange),
+    borderWidth:1.5,borderRadius:5
+  }]},
+  options:{...def,indexAxis:'y',scales:{
+    x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#9c9480',font:{size:11},callback:v=>v.toLocaleString()},border:{display:false}},
+    y:{grid:{display:false},ticks:{color:'#5c5848',font:{size:11}},border:{display:false}}
+  }}
+});
+
+// Funnel compare
+new Chart(document.getElementById('funnelCompare'),{
+  type:'bar',
+  data:{labels:['Payment Initiated','Payment Completed','Order Placed'],datasets:[
+    {label:'Pre-Feb 2024',data:[35.3,8.2,4.1],backgroundColor:'rgba(26,122,74,0.5)',borderColor:green,borderWidth:1.5,borderRadius:4},
+    {label:'Post-Feb 2024',data:[22.7,2.8,1.2],backgroundColor:'rgba(192,32,32,0.5)',borderColor:red,borderWidth:1.5,borderRadius:4}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#5c5848',font:{size:11},boxWidth:12}}},scales:{
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#9c9480',font:{size:11},callback:v=>v+'%'},border:{display:false}},
+    x:{grid:{display:false},ticks:{color:'#5c5848',font:{size:11}},border:{display:false}}
+  }}
+});
+
+// Channel LTV
+const channels = ['Referral','Word of Mouth','App Store','Google Ads','Instagram','Facebook Ads','TikTok Ads'];
+const ltvVals   = [47257,46317,37512,27713,24781,23952,22892];
+const chColors  = [green,blue,purple,amber,orange,red,red];
+new Chart(document.getElementById('channelChart'),{
+  type:'bar',
+  data:{labels:channels,datasets:[{
+    data:ltvVals.map(v=>Math.round(v/1000)),
+    backgroundColor:chColors.map(c=>c+'55'),
+    borderColor:chColors,
+    borderWidth:1.5,borderRadius:5
+  }]},
+  options:{...def,scales:{
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#9c9480',font:{size:11},callback:v=>'₦'+v+'k'},border:{display:false}},
+    x:{grid:{display:false},ticks:{color:'#5c5848',font:{size:10},maxRotation:30},border:{display:false}}
+  }}
+});
+
+// Repeat orders
+new Chart(document.getElementById('repeatChart'),{
+  type:'bar',
+  data:{labels:['1 order','2-3','4-6','7-12','13+'],datasets:[{
+    data:[2.6,7.2,17.3,39.5,129.2],
+    backgroundColor:['rgba(156,148,128,0.5)','rgba(192,112,16,0.5)','rgba(26,74,138,0.5)','rgba(26,122,74,0.5)','rgba(232,98,26,0.8)'],
+    borderColor:['#9c9480',amber,blue,green,orange],
+    borderWidth:1.5,borderRadius:5
+  }]},
+  options:{...def,scales:{
+    y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#9c9480',font:{size:11},callback:v=>'₦'+v+'k'},border:{display:false}},
+    x:{grid:{display:false},ticks:{color:'#5c5848',font:{size:11}},border:{display:false}}
+  }}
+});
+
+// Delivery type
+new Chart(document.getElementById('deliveryChart'),{
+  type:'doughnut',
+  data:{
+    labels:['Next-Day','Standard','Same-Day','Interstate','International'],
+    datasets:[{
+      data:[155.3,69.1,176.6,196.1,231.6],
+      backgroundColor:['rgba(26,74,138,0.7)','rgba(156,148,128,0.6)','rgba(232,98,26,0.7)','rgba(26,122,74,0.7)','rgba(96,48,160,0.7)'],
+      borderColor:['#fff'],borderWidth:2
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:'#5c5848',font:{size:11},boxWidth:12,padding:10}}}}
+});
+
+// Build churn table
+const churnData=[
+  {ch:'Referral',users:3962,churn:79.2,risk:78.6,ltv:47257,cls:'pill-ch-ref'},
+  {ch:'Word of Mouth',users:3431,churn:80.6,risk:79.3,ltv:46317,cls:'pill-ch-wom'},
+  {ch:'App Store',users:2947,churn:84.8,risk:83.1,ltv:37512,cls:'pill-ch-app'},
+  {ch:'Google Ads',users:5125,churn:87.2,risk:86.6,ltv:27713,cls:'pill-ch-ggl'},
+  {ch:'Instagram',users:4575,churn:88.6,risk:88.1,ltv:24781,cls:'pill-ch-bad'},
+  {ch:'Facebook Ads',users:2969,churn:88.3,risk:87.9,ltv:23952,cls:'pill-ch-bad'},
+  {ch:'TikTok Ads',users:1991,churn:89.3,risk:89.4,ltv:22892,cls:'pill-ch-bad'},
+];
+const ct=document.getElementById('churnTable');
+churnData.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="seg-pill ${r.cls}">${r.ch}</span></td><td>${r.users.toLocaleString()}</td><td style="color:${r.churn>87?red:r.churn>83?amber:green};font-weight:500">${r.churn}%</td><td>${r.risk}</td><td style="font-weight:500">₦${Math.round(r.ltv/1000)}k</td>`;
+  ct.appendChild(tr);
+});
+
+// Segment table
+const segData=[
+  {seg:'Corporate',users:3053,churn:82.7,orders:18.0,ltv:100010,cls:'pill-corp'},
+  {seg:'E-commerce Seller',users:5509,churn:82.5,orders:12.8,ltv:60715,cls:'pill-eco'},
+  {seg:'Small Business',users:7022,churn:85.0,orders:5.7,ltv:21357,cls:'pill-smb'},
+  {seg:'Freelancer',users:1967,churn:87.7,orders:2.0,ltv:6160,cls:'pill-free'},
+  {seg:'Individual Sender',users:7449,churn:88.1,orders:1.5,ltv:3611,cls:'pill-ind'},
+];
+const st=document.getElementById('segTable');
+segData.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="seg-pill ${r.cls}">${r.seg}</span></td><td>${r.users.toLocaleString()}</td><td style="color:${r.churn>87?red:r.churn>84?amber:green};font-weight:500">${r.churn}%</td><td>${r.orders}</td><td style="font-weight:500">₦${Math.round(r.ltv/1000)}k</td>`;
+  st.appendChild(tr);
+});
+
+// Channel quality table
+const chQual=[
+  {ch:'Referral',ltv:47257,orders:10.2,churn:79.0,cls:'pill-ch-ref'},
+  {ch:'Word of Mouth',ltv:46317,orders:10.0,churn:81.0,cls:'pill-ch-wom'},
+  {ch:'App Store',ltv:37512,orders:8.2,churn:85.0,cls:'pill-ch-app'},
+  {ch:'Google Ads',ltv:27713,orders:6.1,churn:87.0,cls:'pill-ch-ggl'},
+  {ch:'Instagram',ltv:24781,orders:5.4,churn:89.0,cls:'pill-ch-bad'},
+  {ch:'Facebook Ads',ltv:23952,orders:5.3,churn:88.0,cls:'pill-ch-bad'},
+  {ch:'TikTok Ads',ltv:22892,orders:5.0,churn:89.0,cls:'pill-ch-bad'},
+];
+const cqt=document.getElementById('channelTable');
+chQual.forEach(r=>{
+  const q=r.ltv>40000?'High':r.ltv>30000?'Medium':'Low';
+  const qc=r.ltv>40000?green:r.ltv>30000?amber:red;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="seg-pill ${r.cls}">${r.ch}</span></td><td style="font-weight:500">₦${Math.round(r.ltv/1000)}k</td><td>${r.orders}</td><td style="color:${r.churn>87?red:r.churn>84?amber:green};font-weight:500">${r.churn}%</td><td style="color:${qc};font-weight:500">${q}</td>`;
+  cqt.appendChild(tr);
+});
+
+// Repeat table
+const repData=[
+  {seg:'Corporate',orders:18.0,ltv:100010,cls:'pill-corp'},
+  {seg:'E-commerce Seller',orders:12.8,ltv:60715,cls:'pill-eco'},
+  {seg:'Small Business',orders:5.7,ltv:21357,cls:'pill-smb'},
+  {seg:'Freelancer',orders:2.0,ltv:6160,cls:'pill-free'},
+  {seg:'Individual Sender',orders:1.5,ltv:3611,cls:'pill-ind'},
+];
+const rt=document.getElementById('repeatTable');
+repData.forEach(r=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><span class="seg-pill ${r.cls}">${r.seg}</span></td><td style="font-weight:500">${r.orders}</td><td style="font-weight:500">₦${Math.round(r.ltv/1000)}k</td>`;
+  rt.appendChild(tr);
+});
+</script>
+</body>
+</html>
